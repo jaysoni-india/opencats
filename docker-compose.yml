@@ -1,0 +1,51 @@
+version: '3.9'
+
+services:
+  mariadb:
+    image: mariadb:latest
+    container_name: opencats-db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: opencats
+      MYSQL_USER: opencats_user
+      MYSQL_PASSWORD: opencats_password
+    volumes:
+      - db_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: phpmyadmin
+    restart: always
+    depends_on:
+      - mariadb
+    environment:
+      PMA_HOST: mariadb
+      PMA_PORT: 3306
+      MYSQL_ROOT_PASSWORD: rootpassword
+    ports:
+      - "8080:80"
+
+  opencats:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: opencats
+    restart: always
+    depends_on:
+      - mariadb
+    environment:
+      OPENCATS_DB_HOST: mariadb
+      OPENCATS_DB_NAME: opencats
+      OPENCATS_DB_USER: opencats_user
+      OPENCATS_DB_PASS: opencats_password
+    volumes:
+      - opencats_data:/var/www/html
+    ports:
+      - "8000:80"
+
+volumes:
+  db_data:
+  opencats_data:
